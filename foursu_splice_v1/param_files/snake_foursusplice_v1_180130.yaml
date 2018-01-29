@@ -24,9 +24,10 @@ seqdir = os.path.join(rootdir, config["seqdir"])
 scripts_dir = os.path.join(rootdir, config["scripts_dir"])
 rRNA_index = os.path.join(rootdir, config["rRNA_index"])
 salmon_index = os.path.join(rootdir, config["salmon_index"])
-annotation_db = os.path.join(rootdir, config['annotation_db'])
 intronless_file = os.path.join(rootdir, config["intronless_file"])
 rRNA_txt_table = os.path.join(rootdir, config["rRNA_txt_table"])
+txt_2_gene_pickle = os.path.join(rootdir, config["txt_2_gene_pickle"])
+annotation_db = os.path.join(rootdir, config["annotation_db"])
 logfile = os.path.join(outdir, 'logs', 'pipeline_log.log')
 
 #sample names and grouping
@@ -137,7 +138,7 @@ rule prepare_count_table:
         labelling_hrs = labelling_hrs,
         deg_during_pulse = deg_during_pulse,
         intronless_file = intronless_file,
-        db_file = annotation_db
+        txt_2_gene_pickle = txt_2_gene_pickle
         #rscript = lambda x: os.path.join(outdir,"rates_inspect/inspect_r%s.R" % x.rep),
 
     output:

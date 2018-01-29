@@ -34,11 +34,9 @@ input_df = pd.read_csv(snakemake.input[0], sep = '\t', index_col = 'Name')
 pd_df = pd.read_csv(snakemake.input[1], sep = '\t', index_col = 'Name')
 intronless = set(pd.read_csv(snakemake.params['intronless_file'], header = None, index_col = 0).index.values)
 
-db = gffutils.FeatureDB(snakemake.params['db_file'])
-print('getting all mRNAs')
-all_mRNAs = set([i.id for i in db.all_features()])
-txt_2_name = {i: db[i].attributes['gene_id'][0] for i in all_mRNAs}
-print('mRNAs found')
+with open(snakemake.params['txt_2_gene_pickle'], 'rb') as f:
+    txt_2_name = pickle.load(f)
+
 #note which rows to use for the intron counts
 #then remove '_unspliced' from the name as it will be written to a new file for INSPEcT and needs to be matched
 #note: do the gene names need to be in the same order for INSPEcT?

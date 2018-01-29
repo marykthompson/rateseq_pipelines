@@ -4,9 +4,9 @@ R_environment: tigeR2
 deactivate_cmd: /Users/maryk.thompson/miniconda3/bin/deactivate
 
 #Linux environments:
-#python3_environment: root
-#R_environment: tigeR2
-#deactivate_cmd: /usr/people/bioc1402/miniconda3/bin
+#python3_environment: bioinfo5
+#R_environment: tigeR1
+#deactivate_cmd: /usr/people/bioc1402/miniconda3/bin/deactivate
 
 #root dir should be the only thing that needs changing to run on mprocessor1
 rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
@@ -31,10 +31,11 @@ bowtie_mates: ['1', '2']
 align: ['al', 'un']
 rRNA_index: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_rRNA
 salmon_index: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_salmon_index
-scripts_dir: data/computational_projects/pipelines/common_scripts/analysis_scripts/
+scripts_dir: data/computational_projects/rateseq_pipelines/common_scripts/analysis_scripts/
 rRNA_txt_table: genomes/dmel_r6.18_FB/rRNA_txt_table.csv
 annotation_db: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18.db
 intronless_file: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_intronless.txt
+txt_2_gene_pickle: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/txt_2_gene.p
 
 samples:
     input1: 4sU-60-input-r1_S2_R1_small.fastq.gz
