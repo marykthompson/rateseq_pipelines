@@ -1,0 +1,56 @@
+#Mac environments
+python3_environment: root
+R_environment: tigeR2
+deactivate_cmd: /Users/maryk.thompson/miniconda3/bin/deactivate
+
+#Linux environments:
+#python3_environment: root
+#R_environment: tigeR2
+#deactivate_cmd: /usr/people/bioc1402/miniconda3/bin
+
+#root dir should be the only thing that needs changing to run on mprocessor1
+rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
+
+seqdir: data/sequencing_data/171123_Splice_SenseSeq_smalltest/
+outdir: data/computational_projects/C2/C2.15.SnakeMakeSetup/testonmac4/
+#choose between min read calculated 'perlib' or 'sum' (sum across foursu and total libs)
+min_read_type: perlib
+min_reads: 100
+labelling_hrs: 0.33
+#deg_during_pulse, just kept as r-compatible string-- CHANGE
+deg_during_pulse: 'FALSE' ##this does not cause errors for any of the replicates
+##deg_during_pulse: 'TRUE'
+##error produced for some, but not all of the libraries with deg_during_pulse = TRUE: assignment of an object of class “logical” is not valid for @‘labeledSF’ in an object of class “INSPEcT”; is(value, "numeric") is not TRUE
+#keep set to FALSE for now and then maybe I can test with larger dataset later
+
+### genome and annotation files ###
+# rRNA_txt_table: .csv with FBt #s for rRNAs and the corresponding loci (e.g. 5S_rRNA)
+
+mates: ['R1', 'R2']
+bowtie_mates: ['1', '2']
+align: ['al', 'un']
+rRNA_index: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_rRNA
+salmon_index: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_salmon_index
+scripts_dir: data/computational_projects/pipelines/common_scripts/analysis_scripts/
+rRNA_txt_table: genomes/dmel_r6.18_FB/rRNA_txt_table.csv
+annotation_db: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18.db
+intronless_file: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_intronless.txt
+
+samples:
+    input1: 58058_CAGCGT_CBKMUANXX_5_20171110B_20171110_small.bam
+    input2: 58059_TGCACG_CBKMUANXX_5_20171110B_20171110_small.bam
+    input3: 58060_ACATTA_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd1: 58061_GTGTAG_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd2: 58062_CTAGTC_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd3: 58063_TGTGCA_CBKMUANXX_5_20171110B_20171110_small.bam
+
+replicates:
+    '1':
+        - input1
+        - pd1
+    '2':
+        - input2
+        - pd2
+    '3':
+        - input3
+        - pd3
