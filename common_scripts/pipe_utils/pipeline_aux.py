@@ -61,3 +61,38 @@ def plot_genomic_region(coverage, chrom, start, end, strand, positions = None):
     ax.set_xlabel('position')
 
     return ax
+
+def scatter_plot(df, x_col = None, y_col = None, x_name = None, y_name = None, filename = None, logbase = None):
+    '''
+    Plot data contained in x_col and y_col with optional log transformation. Data will be prefiltered to remove nans
+    '''
+    
+    if logbase != None:
+        if logbase == 10:
+            df['x_log'] = df[x_col].apply(np.log10)
+            df['y_log'] = df[y_col].apply(np.log10)
+        elif logbase == 2:
+            df['x_log'] = df[x_col].apply(np.log2)
+            df['y_log'] = df[y_col].apply(np.log2)
+        else:
+            raise NotImplementedError('logbase %s not supported' % logbase)
+        x_col = 'x_log'
+        y_col = 'y_log'
+        
+    #because np.log(0) = -inf instead of np.nan, need to convert these values
+    df.replace([np.inf, -np.inf], np.nan, inplace = True)
+    df.dropna(axis = 0, how = 'any', subset = [x_col, y_col], inplace = True)
+    num_plotted = len(df)
+    corr = df[x_col].corr(df[y_col])
+    r2_val = corr**2
+    fig = plt.figure(figsize = (8, 8))
+    ax = fig.add_subplot(111)
+    ax.scatter(df[x_col], df[y_col], color = 'k', s = 10)
+    ax.text(0.1, 0.9, 'r2 = %1.3f\nn = %s' % (r2_val, num_plotted), transform = ax.transAxes)
+    ax.set_xlabel(x_name)
+    ax.set_ylabel(y_name)
+    if filename != None:
+        plt.savefig('%s.png' % filename)
+        plt.close(fig)
+    else:
+        return ax

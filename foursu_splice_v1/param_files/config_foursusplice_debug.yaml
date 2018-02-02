@@ -1,21 +1,22 @@
-#Mac-specific environments (to run on MK's macbook)
+#Mac environments
 python3_environment: root
 R_environment: tigeR2
 deactivate_cmd: /Users/maryk.thompson/miniconda3/bin/deactivate
-rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
 
-#Linux environments (to run on mprocessor1):
+#Linux environments:
 #python3_environment: bioinfo5
 #R_environment: tigeR1
 #deactivate_cmd: /usr/people/bioc1402/miniconda3/bin/deactivate
-#rootdir: /usr/people/bioc1402/
 
-seqdir: data/sequencing_data/170907_Fixit_QuantSeq_smalltest/
-outdir: data/computational_projects/C2/C2.15.SnakeMakeSetup/testonmac3_quantseq/
+#root dir should be the only thing that needs changing to run on mprocessor1
+rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
+
+seqdir: data/sequencing_data/171123_Splice_SenseSeq_smalltest/
+outdir: data/computational_projects/C2/C2.15.SnakeMakeSetup/testonmac4_debug/
 #choose between min read calculated 'perlib' or 'sum' (sum across foursu and total libs)
 min_read_type: perlib
 min_reads: 100
-labelling_hrs: 1.0
+labelling_hrs: 0.33
 #deg_during_pulse, just kept as r-compatible string-- CHANGE
 deg_during_pulse: 'FALSE' ##this does not cause errors for any of the replicates
 ##deg_during_pulse: 'TRUE'
@@ -32,17 +33,17 @@ rRNA_index: data/computational_projects/pipelines/build_annotations_flybase_v1/d
 salmon_index: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_salmon_index
 scripts_dir: data/computational_projects/rateseq_pipelines/common_scripts/analysis_scripts/
 rRNA_txt_table: genomes/dmel_r6.18_FB/rRNA_txt_table.csv
-annotation_db: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18.db
 intronless_file: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_intronless.txt
 txt_2_gene_pickle: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/txt_2_gene.p
+annotation_db: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18.db
 
 samples:
-    input1: 4sU-60-input-r1_S2_R1_small.fastq.gz
-    input2: 4sU-60-input-r2_S1_R1_small.fastq.gz
-    input3: 4sU-60-input-r3_S14_R1_small.fastq.gz
-    pd1: 4sU-60-pd-r1_S15_R1_small.fastq.gz
-    pd2: 4sU-60-pd-r2_S6_R1_small.fastq.gz
-    pd3: 4sU-60-pd-r3_S5_R1_small.fastq.gz
+    input1: 58058_CAGCGT_CBKMUANXX_5_20171110B_20171110_small.bam
+    input2: 58059_TGCACG_CBKMUANXX_5_20171110B_20171110_small.bam
+    input3: 58060_ACATTA_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd1: 58061_GTGTAG_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd2: 58062_CTAGTC_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd3: 58063_TGTGCA_CBKMUANXX_5_20171110B_20171110_small.bam
 
 replicates:
     '1':

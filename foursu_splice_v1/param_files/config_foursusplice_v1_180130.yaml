@@ -1,15 +1,14 @@
-#Mac environments
+#Mac-specific environments (to run on MK's macbook)
 python3_environment: root
 R_environment: tigeR2
 deactivate_cmd: /Users/maryk.thompson/miniconda3/bin/deactivate
+rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
 
-#Linux environments:
+#Linux environments (to run on mprocessor1):
 #python3_environment: bioinfo5
 #R_environment: tigeR1
 #deactivate_cmd: /usr/people/bioc1402/miniconda3/bin/deactivate
-
-#root dir should be the only thing that needs changing to run on mprocessor1
-rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
+#rootdir: /usr/people/bioc1402/
 
 seqdir: data/sequencing_data/171123_Splice_SenseSeq_smalltest/
 outdir: data/computational_projects/C2/C2.15.SnakeMakeSetup/testonmac4/

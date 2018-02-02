@@ -17,10 +17,16 @@ import os
 
 configfile: "config_foursusplice_v1_180130.yaml"
 
-#files and directories
+#machine-specific directories and commands
 rootdir = config["rootdir"]
 outdir = os.path.join(rootdir, config["outdir"])
 seqdir = os.path.join(rootdir, config["seqdir"])
+
+ENV_PY = 'source activate %s' % config['python3_environment']
+ENV_R = 'source activate %s' % config['R_environment']
+DEACTIVATE = 'source %s' % config['deactivate_cmd']
+
+#annotation files
 scripts_dir = os.path.join(rootdir, config["scripts_dir"])
 rRNA_index = os.path.join(rootdir, config["rRNA_index"])
 salmon_index = os.path.join(rootdir, config["salmon_index"])
@@ -41,11 +47,6 @@ min_read_type = config['min_read_type']
 min_reads = config['min_reads']
 labelling_hrs = config['labelling_hrs']
 deg_during_pulse = config['deg_during_pulse']
-
-#conda environments needed
-ENV_PY = 'source activate %s' % config['python3_environment']
-ENV_R = 'source activate %s' % config['R_environment']
-DEACTIVATE = 'source %s' % config['deactivate_cmd']
 
 rule targets:
     input:
@@ -219,7 +220,8 @@ rule filter_and_summarize_byGene_plusI:
         min_read_type = min_read_type,
         min_reads = min_reads,
         filtering_outdir = os.path.join(outdir, "rates_inspect/byGene/plusI/filtered_genes/"),
-        annotation_db = annotation_db
+        annotation_db = annotation_db,
+        labelling_hrs = labelling_hrs
     output:
         all_data_file = os.path.join(outdir, "rates_inspect/byGene/plusI/inspect_data_full.csv"),
         summary_data_file = os.path.join(outdir, "rates_inspect/byGene/plusI/inspect_data_summary.csv")
@@ -240,7 +242,8 @@ rule filter_and_summarize_byTxt_plusI:
         min_read_type = min_read_type,
         min_reads = min_reads,
         filtering_outdir = os.path.join(outdir, "rates_inspect/byTxt/plusI/filtered_genes/"),
-        annotation_db = annotation_db
+        annotation_db = annotation_db,
+        labelling_hrs = labelling_hrs
     output:
         all_data_file = os.path.join(outdir, "rates_inspect/byTxt/plusI/inspect_data_full.csv"),
         summary_data_file = os.path.join(outdir, "rates_inspect/byTxt/plusI/inspect_data_summary.csv")
@@ -261,7 +264,8 @@ rule filter_and_summarize_byGene_minusI:
         min_read_type = min_read_type,
         min_reads = min_reads,
         filtering_outdir = os.path.join(outdir, "rates_inspect/byGene/minusI/filtered_genes/"),
-        annotation_db = annotation_db
+        annotation_db = annotation_db,
+        labelling_hrs = labelling_hrs
     output:
         all_data_file = os.path.join(outdir, "rates_inspect/byGene/minusI/inspect_data_full.csv"),
         summary_data_file = os.path.join(outdir, "rates_inspect/byGene/minusI/inspect_data_summary.csv")
@@ -282,7 +286,9 @@ rule filter_and_summarize_byTxt_minusI:
         min_read_type = min_read_type,
         min_reads = min_reads,
         filtering_outdir = os.path.join(outdir, "rates_inspect/byTxt/minusI/filtered_genes/"),
-        annotation_db = annotation_db
+        annotation_db = annotation_db,
+        labelling_hrs = labelling_hrs
+
     output:
         all_data_file = os.path.join(outdir, "rates_inspect/byTxt/minusI/inspect_data_full.csv"),
         summary_data_file = os.path.join(outdir, "rates_inspect/byTxt/minusI/inspect_data_summary.csv")
@@ -297,7 +303,8 @@ rule plot_reproducibility_byGene_plusI:
         plot_dir = os.path.join(outdir, "rates_inspect/byGene/plusI/reproducibility/"),
         genelist_dir = os.path.join(outdir, "rates_inspect/byGene/plusI/filtered_genes/"),
         min_read_type = min_read_type,
-        min_reads = min_reads
+        min_reads = min_reads,
+        labelling_hrs = labelling_hrs
     output:
         os.path.join(outdir, "rates_inspect/byGene/plusI/reproducibility/filtering_summary.csv")
     log: logfile

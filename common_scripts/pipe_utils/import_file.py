@@ -5,7 +5,6 @@
 import pandas as pd
 import numpy as np
 import scipy as sp
-import seaborn as sns
 import sys
 import os
 from collections import defaultdict
@@ -18,6 +17,7 @@ import HTSeq
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import seaborn as sns
 #plt.style.use('presentation')
 #plt.style.use('notebook')
 # Module Imports

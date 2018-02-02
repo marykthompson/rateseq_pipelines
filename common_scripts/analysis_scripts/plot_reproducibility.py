@@ -87,14 +87,11 @@ def plot_reproducibility(df, outdir = None, gene_list_dir = None, min_reads = No
     decay_from_total_est_cols = [i for i in colnames if 'decay_simple_est' in i]
     proc_est_cols = [i for i in colnames if 'proc_est' in i]
 
-    print('old names', colnames)
-
     for cols in [synth_cols, deg_cols, proc_cols, foursu_exon_cols, foursu_intron_cols, total_exon_cols, total_intron_cols, synth_est_cols, decay_est_cols, decay_from_total_est_cols, proc_est_cols]:
         for j in cols:
             df['{0}_log10_{1}'.format('_'.join(j.split('_')[:-1]), j.split('_')[-1])] = df[j].apply(np.log10)
 
     newcolnames = df.columns.values
-    print('new names', newcolnames)
     synth_cols = [i for i in newcolnames if 'synthesis_rate_log10' in i]
     deg_cols = [i for i in newcolnames if 'decay_rate_log10' in i]
     proc_cols = [i for i in newcolnames if 'processing_rate_log10' in i]
@@ -108,18 +105,16 @@ def plot_reproducibility(df, outdir = None, gene_list_dir = None, min_reads = No
     proc_est_cols = [i for i in newcolnames if 'proc_est_log10' in i]
 
     df = df[synth_cols + deg_cols + proc_cols + foursu_exon_cols + foursu_intron_cols + total_exon_cols + total_intron_cols + synth_est_cols + decay_est_cols + decay_simple_est_cols + proc_est_cols]
-
+    
     to_plot_dict = {'synthesis': synth_cols, 'decay': deg_cols, 'processing': proc_cols, 'foursu_exon': foursu_exon_cols, 'foursu_intron': foursu_intron_cols, 'total_exon': total_exon_cols, 'total_intron': total_intron_cols, 'synthesis_est': synth_est_cols, 'decay_est': decay_est_cols, 'decay_simple_est': decay_simple_est_cols, 'processing_est': proc_est_cols}
-
-    print('to_plot_dict', to_plot_dict)
-
+  
     #ii) make mini_dfs for each filtering combination and plot
     num_exps = len(synth_cols)
     pairs = [pair for pair in itertools.combinations(range(num_exps), 2)]
     rep_comb = ['pearson_r2_rep%s_v_rep%s' % (i[1]+1, i[0]+1) for i in pairs]
     header = ['rate', 'filtering_method', 'min_reads', 'num_genes'] + rep_comb
     filter_summary_df = pd.DataFrame(columns = header)
-    gene_files = [os.path.join(gene_list_dir, i) for i in os.listdir(gene_list_dir)]
+    gene_files = [os.path.join(gene_list_dir, i) for i in os.listdir(gene_list_dir) if i.endswith('.csv')]
 
     this_outdir = os.path.join(outdir, 'scatterplots')
     if not os.path.exists(this_outdir):
@@ -127,26 +122,23 @@ def plot_reproducibility(df, outdir = None, gene_list_dir = None, min_reads = No
         for rate in to_plot_dict:
             os.makedirs(os.path.join(this_outdir, rate))
 
-    print('reading filtered gene lists')
     for i in gene_files:
         read_type, co = os.path.basename(i).split('.csv')[0].split('_')[-2:]
         #get empty dataframe with genes that passed the cutoff
         passed_genes = pd.read_csv(i, names = ['txt'], index_col = 'txt')
         #do inner join instead of left, because we'll already have gotten rid of the ERCC stds from df but these show up in passed
         filtered_df = pd.merge(passed_genes, df, how = 'inner', left_index = True, right_index = True)
+        
         #despite filtering for read count cutoff, still won't be able to get synthesis or decay rate for a lot of genes
         #iii) Plot rate reprocibility
         for rate in to_plot_dict:
-            print('rate', rate)
             fig = plt.figure(figsize = (8,8))
             n = 1
             corr_vals = []
-            #print('rate', rate)
             for pair in pairs:
-                #print('pair', pair)
                 x_name = to_plot_dict[rate][pair[0]]
                 y_name = to_plot_dict[rate][pair[1]]
-
+               
                 #because np.log(0) = -inf instead of np.nan, need to convert these values
                 valid_df = filtered_df.replace([np.inf, -np.inf], np.nan, inplace = False)
                 valid_df.dropna(axis = 0, how = 'any', subset = [x_name, y_name], inplace = True)
@@ -169,8 +161,8 @@ def plot_reproducibility(df, outdir = None, gene_list_dir = None, min_reads = No
             result_dict['filtering_method'] = read_type
             result_dict['min_reads'] = co
             result_dict['num_genes'] = num_plotted
-            for i in range(0, len(rep_comb)):
-                result_dict[rep_comb[i]] = corr_vals[i]
+            for j in range(0, len(rep_comb)):
+                result_dict[rep_comb[j]] = corr_vals[j]
             filter_summary_df = filter_summary_df.append(result_dict, ignore_index = True)
 
     filter_summary_df = filter_summary_df.round(4)
