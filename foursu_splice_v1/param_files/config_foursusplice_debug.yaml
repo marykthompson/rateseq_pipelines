@@ -1,15 +1,14 @@
-#Mac environments
+#Mac-specific environments (to run on MK's macbook)
 python3_environment: root
 R_environment: tigeR2
 deactivate_cmd: /Users/maryk.thompson/miniconda3/bin/deactivate
+rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
 
-#Linux environments:
+#Linux environments (to run on mprocessor1):
 #python3_environment: bioinfo5
 #R_environment: tigeR1
 #deactivate_cmd: /usr/people/bioc1402/miniconda3/bin/deactivate
-
-#root dir should be the only thing that needs changing to run on mprocessor1
-rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
+#rootdir: /usr/people/bioc1402/
 
 seqdir: data/sequencing_data/171123_Splice_SenseSeq_smalltest/
 outdir: data/computational_projects/C2/C2.15.SnakeMakeSetup/testonmac4_debug/
@@ -19,6 +18,17 @@ min_reads: 100
 labelling_hrs: 0.33
 #deg_during_pulse, just kept as r-compatible string-- CHANGE
 deg_during_pulse: 'FALSE' ##this does not cause errors for any of the replicates
+
+#pd_in_RNA_ratio = the ratio of total RNA used in the PD to the amount used in the input
+#(e.g. for 'SPLICE' experiments, 500 ng was used for input vs. 24 ug for pulldown, therefore PD/IN = 48)
+#in_pd_spike_ratio = the pipetting ratio of input/pd (i.e. ratio of spike-in amount added to tube for input vs. pd)
+#if we multiple the spike ratio by the pd_in_RNA_ratio, then this will make the spike-ins to the scale
+#that they would have been if we'd added at the same scale relative to the input [RNA].
+#This will make the spike-in values a lot higher and therefore the genecounts a lot lower
+pd_in_RNA_ratio: 48
+in_pd_spike_ratio_ERCC: 9
+in_pd_spike_ratio_SIRV: 0.78125
+
 ##deg_during_pulse: 'TRUE'
 ##error produced for some, but not all of the libraries with deg_during_pulse = TRUE: assignment of an object of class “logical” is not valid for @‘labeledSF’ in an object of class “INSPEcT”; is(value, "numeric") is not TRUE
 #keep set to FALSE for now and then maybe I can test with larger dataset later

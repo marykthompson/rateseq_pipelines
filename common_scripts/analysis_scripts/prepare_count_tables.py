@@ -18,6 +18,9 @@
 #
 # Version 6:
 # - Add the spike_in seqs to the txt-> gene dict so that they can still be incorporated downstream
+#
+# Version 7:
+# - prepare count tables that keep both the counts and the TPM output for each experiment. Change Rscript to handle this.
 
 #1) Imports, this relies on utils keeping same relative path
 util_dir = '../../common_scripts/pipe_utils/'
@@ -40,21 +43,22 @@ with open(snakemake.params['txt_2_gene_pickle'], 'rb') as f:
 #note which rows to use for the intron counts
 #then remove '_unspliced' from the name as it will be written to a new file for INSPEcT and needs to be matched
 #note: do the gene names need to be in the same order for INSPEcT?
-exp_dict = {'total': input_df, 'foursu': pd_df}
+exp_dict = {'total': {'infile': input_df, 'out': None}, 'foursu': {'infile': pd_df, 'out': None}}
 for exp in exp_dict:
     print('exp', exp)
-    df = exp_dict[exp]
+    df = exp_dict[exp]['infile']
     df['intron'] = df.index.map(lambda x: x.split('_')[-1] == 'unspliced')
     df['Name'] = df.index.map(lambda x: x.split('_')[0])
 
     #split dfs into intron and exon mapping:
-    exon_df = df[df['intron'] == False][['Name', 'TPM']].copy().set_index('Name')
-    intron_df = df[df['intron'] == True][['Name', 'TPM']].copy().set_index('Name')
+    exon_df = df[df['intron'] == False][['Name', 'TPM', 'NumReads']].copy().set_index('Name')
+    intron_df = df[df['intron'] == True][['Name', 'TPM', 'NumReads']].copy().set_index('Name')
 
     print('getting exon and intron reads...')
-    #set TPM_total to the sum of intron and exon reads
+    #merge intron and exon reads into df
     df = pd.merge(exon_df, intron_df, left_index = True, right_index = True, suffixes = ('_exon', '_intron'))
-    #now get the IDs not in the txt_2_name dict (like the spike-ins) and add to the dict
+    
+    #get the transcript IDs not in the txt_2_name dict (like the spike-ins) and add to the name dict
     all_ids = set(df.index.tolist())
     old_keys = set(txt_2_name)
     missing_genes = all_ids.difference(old_keys)
@@ -62,13 +66,19 @@ for exp in exp_dict:
         txt_2_name[i] = i
 
     df['TPM_total'] = df['TPM_exon'] + df['TPM_intron']
+    df['counts_total'] = df['NumReads_exon'] + df['NumReads_intron']
 
     #set TPM_exon = TPM spliced or TPM total depending on whether the gene is intronless or not
     #set TPM_intron = 0 if gene is intronless
     df['TPM_exon'] = df.apply(lambda row: row['TPM_total'] if row.name in intronless else row['TPM_exon'], axis = 1)
     df['TPM_intron'] = df.apply(lambda row: 0 if row.name in intronless else row['TPM_intron'], axis = 1)
-    print('counting by gene1')
-    #write output files by the summing the TPM from individual transcripts
+    
+    #save new df after counting intron and exon reads
+    exp_dict[exp]['out'] = df
+    
+    
+    '''
+    #add gene ids from transcript IDs
     df['transcript'] = df.index
     df['gene_id'] = df['transcript'].map(txt_2_name)
 
@@ -95,21 +105,47 @@ for exp in exp_dict:
     df[['TPM_exon']].to_csv(snakemake.output['byTxt_minusI_%s_exons_file' % exp], header = False, sep = ' ')
     df[['TPM_intron']].to_csv(snakemake.output['byTxt_minusI_%s_introns_file' % exp], header = False, sep = ' ')
 
+    '''
 
+#combine foursu and total dfs:
+df = pd.merge(exp_dict['foursu']['out'], exp_dict['total']['out'], left_index = True, right_index = True, suffixes = ('_foursu', '_total'))
+
+#get gene names by transcript ID
+df['transcript'] = df.index
+df['gene_id'] = df['transcript'].map(txt_2_name)
+
+#groupby gene and sum for the by gene analyses
+#write one output file 'by gene' and one output file 'by transcript'
+sum_by_gene_df = df.groupby('gene_id').sum()
+sum_by_gene_df.index.names = ['Name']
+cols2write = sum_by_gene_df.columns.values
+df[cols2write].to_csv(snakemake.output['byTxt_plusI_file'], sep = ' ')
+sum_by_gene_df[cols2write].to_csv(snakemake.output['byGene_plusI_file'], sep = ' ')
+
+#now set all TPM_intron and NumReads_intron to 0 to exlcude intron reads for the minus intron analysis
+df[['TPM_intron_foursu', 'TPM_intron_total', 'NumReads_intron_foursu', 'NumReads_intron_total']] = 0
+
+sum_by_gene_df = df.groupby('gene_id').sum()
+sum_by_gene_df.index.names = ['Name']
+df[cols2write].to_csv(snakemake.output['byTxt_minusI_file'], sep = ' ')
+sum_by_gene_df[cols2write].to_csv(snakemake.output['byGene_minusI_file'], sep = ' ')
+
+#write Rscript to run INSPEcT on the data
 for method in ['byTxt', 'byGene']:
     for itype in ['minusI', 'plusI']:
         with open(snakemake.output['%s_%s_rscript' % (method, itype)], 'w') as f:
             f.write('library(INSPEcT)\n')
-            #each replicate will get it's own INSPEcT analysis and output files
-            f.write('su_exons= read.table("%s", row.names=1)\n' % snakemake.output['%s_%s_foursu_exons_file' % (method, itype)])
-            f.write('su_introns= read.table("%s", row.names=1)\n' % snakemake.output['%s_%s_foursu_introns_file' % (method, itype)])
-            f.write('t_exons= read.table("%s", row.names=1)\n' % snakemake.output['%s_%s_total_exons_file' % (method, itype)])
-            f.write('t_introns= read.table("%s", row.names=1)\n' % snakemake.output['%s_%s_total_introns_file' % (method, itype)])
+            f.write('df<-read.table("%s", header = TRUE, row.names=1)\n' % snakemake.output['%s_%s_file' % (method, itype)])
+            f.write('su_exons<-df["TPM_exon_foursu"]\n')
+            f.write('su_introns<-df["TPM_intron_foursu"]\n')
+            f.write('t_exons<-df["TPM_exon_total"]\n')
+            f.write('t_introns<-df["TPM_intron_total"]\n')
             f.write('mycounts<-list(foursu_exons= su_exons, foursu_introns= su_introns, total_exons= t_exons, total_introns= t_introns)\n')
             f.write('tpts<-c(0)\n')
-            #f.write('tL<-0.33\n')
             f.write('tL<-%s\n' % snakemake.params['labelling_hrs'])
             f.write('myAnalysis<-newINSPEcT(tpts, tL, mycounts$foursu_exons, mycounts$total_exons, mycounts$foursu_introns, mycounts$total_introns, BPPARAM = SerialParam(), degDuringPulse=%s)\n' % snakemake.params['deg_during_pulse'])
-            f.write('write.csv(ratesFirstGuess(myAnalysis, "synthesis"), "%s")\n' % snakemake.params['%s_%s_synthesis_file' % (method, itype)])
-            f.write('write.csv(ratesFirstGuess(myAnalysis, "degradation"), "%s")\n' % snakemake.params['%s_%s_decay_file' % (method, itype)])
-            f.write('write.csv(ratesFirstGuess(myAnalysis, "processing"), "%s")\n' % snakemake.params['%s_%s_processing_file' % (method, itype)])
+            f.write('syn<-ratesFirstGuess(myAnalysis, "synthesis")\n')
+            f.write('deg<-ratesFirstGuess(myAnalysis, "degradation")\n')
+            f.write('proc<-ratesFirstGuess(myAnalysis, "processing")\n')
+            f.write('sum_df<-cbind(syn, deg, proc)\n')
+            f.write('write.csv(sum_df, "%s")\n' % snakemake.params['%s_%s_rate_file' % (method, itype)])
