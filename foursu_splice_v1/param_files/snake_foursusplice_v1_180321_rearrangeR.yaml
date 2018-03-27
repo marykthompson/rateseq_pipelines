@@ -53,11 +53,11 @@ pd_in_RNA_ratio = config['pd_in_RNA_ratio']
 
 rule targets:
     input:
-        os.path.join(outdir, "rates_inspect/byGene/minusI/reproducibility/filtering_summary.csv"),
         os.path.join(outdir, "rates_inspect/byGene/plusI/reproducibility/filtering_summary.csv"),
-        os.path.join(outdir, "rates_inspect/byTxt/minusI/reproducibility/filtering_summary.csv"),
-        os.path.join(outdir, "rates_inspect/byTxt/plusI/reproducibility/filtering_summary.csv"),
-        os.path.join(outdir, "rRNA_contam/rRNA_contamination_summary.csv")
+        #os.path.join(outdir, "rates_inspect/byGene/minusI/reproducibility/filtering_summary.csv"),
+        #os.path.join(outdir, "rates_inspect/byTxt/minusI/reproducibility/filtering_summary.csv"),
+        #os.path.join(outdir, "rates_inspect/byTxt/plusI/reproducibility/filtering_summary.csv"),
+        #os.path.join(outdir, "rRNA_contam/rRNA_contamination_summary.csv")
 
         #all_data_file = os.path.join(outdir, "rates_inspect/byGene/plusI/inspect_data_full.csv"),
         #summary_data_file = os.path.join(outdir, "rates_inspect/byGene/plusI/inspect_data_summary.csv"),

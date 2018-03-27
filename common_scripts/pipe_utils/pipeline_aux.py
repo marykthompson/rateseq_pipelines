@@ -65,49 +65,6 @@ def plot_genomic_region(coverage, chrom, start, end, strand, positions = None):
 
     return ax
 
-def scatter_plot(df, x_col = None, y_col = None, x_name = None, y_name = None, filename = None, logbase = None, title = None):
-    '''
-    Plot data contained in x_col and y_col with optional log transformation. Data will be prefiltered to remove nans
-    '''
-    #avoid modifying original dataframe if using inplace operations
-    df = df.copy()
-
-    if logbase != None:
-        if logbase == 10:
-            df['x_log'] = df[x_col].apply(np.log10)
-            df['y_log'] = df[y_col].apply(np.log10)
-        elif logbase == 2:
-            df['x_log'] = df[x_col].apply(np.log2)
-            df['y_log'] = df[y_col].apply(np.log2)
-        else:
-            raise NotImplementedError('logbase %s not supported' % logbase)
-        x_col = 'x_log'
-        y_col = 'y_log'
-
-    #because np.log(0) = -inf instead of np.nan, need to convert these values
-    df.replace([np.inf, -np.inf], np.nan, inplace = True)
-    df.dropna(axis = 0, how = 'any', subset = [x_col, y_col], inplace = True)
-    num_plotted = len(df)
-    corr = df[x_col].corr(df[y_col])
-    r2_val = corr**2
-    fig = plt.figure(figsize = (8, 8))
-    ax = fig.add_subplot(111)
-    ax.scatter(df[x_col], df[y_col], color = 'k', s = 10)
-    #can we specify the fontsize in the .mplstyle file?
-    #r'$\alpha_i > \beta_i$'
-    #ax.text(0.1, 0.9, r'$r^2 = {0} n = {1}$'.format(r2_val, num_plotted), transform = ax.transAxes, fontsize = 12)
-    ax.text(0.1, 0.9, 'r2 = %1.3f\nn = %s' % (r2_val, num_plotted), transform = ax.transAxes, fontsize = 12)
-
-    #ax.text(0.1, 0.9, 'r2 = %1.3f\nn = %s' % (r2_val, num_plotted), transform = ax.transAxes, fontsize = 12)
-    ax.set_xlabel(x_name)
-    ax.set_ylabel(y_name)
-    plt.title(title)
-    if filename != None:
-        plt.savefig('%s.png' % filename)
-        plt.close(fig)
-    else:
-        return ax
-
 def limit_df(df, colnames = None, min_val = None, max_val = None):
     '''
     Filter out data that is outside given min and max values
@@ -210,7 +167,29 @@ def seaborn_box():
 	sns.despine(offset=10)
 	return ax
 
-def multiscatter_plot(df, cols = None, label_index_level = None, axis_title_suffix = None, filename = None, title = None):
+def scatter_plot(df, cols = None, label_index_level = None, axis_title_suffix = '', title = ''):
+    '''
+    Make a multiscatter plot of all the combinations in given columns
+    Also retun correlations for each
+    '''
+    #store results of each replicate as correlation dict
+    corr_dict = {}
+    num_plotted = len(df)
+    fig = plt.figure(figsize = (8,8))
+    xname = cols[0]
+    yname = cols[1]
+    corr = df[xname].corr(df[yname])
+    r2_val = corr**2
+
+    ax = fig.add_subplot(111)
+    ax.scatter(df[xname], df[yname], color = 'k', s = 10)
+    ax.text(0.1, 0.8, 'r2 = %1.3f\nn = %s' % (r2_val, num_plotted), transform = ax.transAxes)
+
+    label_axes(ax, xname = xname, yname = yname, label_index_level = label_index_level, axis_title_suffix = axis_title_suffix)
+
+    return {'num_plotted': num_plotted, 'fig': fig}
+
+def multiscatter_plot(df, cols = None, label_index_level = None, axis_title_suffix = '', filename = None, title = ''):
     '''
     Make a multiscatter plot of all the combinations in given columns
     Also retun correlations for each
@@ -236,13 +215,7 @@ def multiscatter_plot(df, cols = None, label_index_level = None, axis_title_suff
         ax.set_ylabel('%s %s' % (yname[label_index_level], axis_title_suffix))
         n += 1
 
-    plt.tight_layout()
-    plt.suptitle(title)
-    plt.subplots_adjust(top = 0.92)
-    plt.savefig('%s.png' % filename)
-    plt.close(fig)
-
-    return {'ax': ax, 'corr_dict': corr_dict, 'num_plotted': num_plotted}
+    return {'ax': ax, 'corr_dict': corr_dict, 'num_plotted': num_plotted, 'fig': fig}
 
 def log_transform(df, cols = None, logbase = None, label_index_level = None):
     '''Transform columns with given logbase and return new df and column names'''
@@ -251,8 +224,12 @@ def log_transform(df, cols = None, logbase = None, label_index_level = None):
         for col in cols:
             #if col is a tuple, we're dealing with a hierarchical index
             #for now I'm assuming the next level (label_index_level + 1) will have the name of the data to transform
+
+            #if label_index_level = 0, indicates that we are plotting different reps against each other
+            #if label_index_level = 1, indicates that we are plotting different columns from same rep against each other
+            #maybe this should be made more flexible in the future
             if type(col) == tuple:
-                newcol = (col[label_index_level], '%s_log' % col[label_index_level+1])
+                newcol = (col[0], '%s_log' % col[1])
             else:
                 newcol = '%s_log' % col
 
@@ -264,7 +241,30 @@ def log_transform(df, cols = None, logbase = None, label_index_level = None):
     #shouldn't need to retun df, as it should be modified here
     return logcols
 
-def plot(df, cols = None, plottype = None, logbase = None, title = None, label_index_level = 0, axis_title_suffix = None, filename = None):
+def label_axes(ax, xname = None, yname = None, label_index_level = None, axis_title_suffix = ''):
+    '''
+    label x and y-axes of plot
+    '''
+    #if it's a multiIndex df, we'd like to specify which level to use,
+    #but if it's a single index, then this is going to slice the string which is not what we want
+    if type(xname) == tuple:
+        ax.set_xlabel('%s %s' % (xname[label_index_level], axis_title_suffix))
+        ax.set_ylabel('%s %s' % (yname[label_index_level], axis_title_suffix))
+    else:
+        ax.set_xlabel('%s %s' % (xname, axis_title_suffix))
+        ax.set_ylabel('%s %s' % (yname, axis_title_suffix))
+
+def save(fig, filename = None, title = None, figformat = 'png'):
+    '''
+    Save figure
+    '''
+    plt.tight_layout()
+    plt.suptitle(title)
+    #plt.subplots_adjust(top = 0.92)
+    plt.savefig('%s.%s' % (filename, figformat))
+    plt.close(fig)
+
+def plot(df, cols = None, plottype = None, logbase = None, title = '', label_index_level = 0, axis_title_suffix = '', filename = None, figformat = 'png'):
     '''
     Given a df and plottype, clean up data and then send to plotting function
     df = pandas dataframe, cols = list of columns with data, plottype = 'scatter', etc.
@@ -278,8 +278,10 @@ def plot(df, cols = None, plottype = None, logbase = None, title = None, label_i
         cols = log_transform(df, cols = cols, logbase = logbase, label_index_level = label_index_level)
         clean_df(df, cols = cols)
 
-    results = plot_fxn_dict[plottype](df, cols = cols, title = title, label_index_level = label_index_level, axis_title_suffix = axis_title_suffix, filename = filename)
+    #send to plotting fxn, which will return plot-specific analyses in the results dict
+    results = plot_fxn_dict[plottype](df, cols = cols, title = title, label_index_level = label_index_level, axis_title_suffix = axis_title_suffix)
+    save(results['fig'], filename = filename, title = title, figformat = figformat)
     return results
 
-plot_fxn_dict = {'multiscatter':multiscatter_plot}
+plot_fxn_dict = {'multiscatter':multiscatter_plot, 'scatter':scatter_plot}
 np_log_transforms = {2:  np.log2, 10: np.log10}

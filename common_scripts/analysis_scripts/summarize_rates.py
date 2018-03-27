@@ -87,12 +87,18 @@ def estimate_rates_simple(df, tL = None, in_pd_spike_ratio_ERCC = None, in_pd_sp
     #3) normalize counts for each gene to the spike-in counts for that library
     #note that for now I'm doing this by dividing by the number of spikein counts for the library, not by applying scaling factor around 1
     count_classes = {'foursu': {'intron': 'NumReads_intron_foursu', 'exon': 'NumReads_exon_foursu'}, 'total': {'intron': 'NumReads_intron_total', 'exon': 'NumReads_exon_total'}}
+    tpm_classes = {'foursu': {'intron': 'TPM_intron_foursu', 'exon': 'TPM_exon_foursu'}, 'total': {'intron': 'TPM_intron_total', 'exon': 'TPM_exon_total'}}
+
     for rep in reps:
         for fraction in count_classes:
             for region in count_classes[fraction]:
                 df.loc[:, (rep, '%s_ercc_scaled' % count_classes[fraction][region])] = df.loc[:, (rep, count_classes[fraction][region])]/scale_factors['ERCC'][rep][fraction]
                 df.loc[:, (rep, '%s_sirv_scaled' % count_classes[fraction][region])] = df.loc[:, (rep, count_classes[fraction][region])]/scale_factors['SIRV'][rep][fraction]
                 df.loc[:, (rep, '%s_spike_scaled' % count_classes[fraction][region])] = df.loc[:, (rep, count_classes[fraction][region])]/scale_factors['spike'][rep][fraction]
+                #also scale the TPM values, I think this is better to use for the rate modeling
+                df.loc[:, (rep, '%s_ercc_scaled' % tpm_classes[fraction][region])] = df.loc[:, (rep, tpm_classes[fraction][region])]/scale_factors['ERCC'][rep][fraction]
+                df.loc[:, (rep, '%s_sirv_scaled' % tpm_classes[fraction][region])] = df.loc[:, (rep, tpm_classes[fraction][region])]/scale_factors['SIRV'][rep][fraction]
+                df.loc[:, (rep, '%s_spike_scaled' % tpm_classes[fraction][region])] = df.loc[:, (rep, tpm_classes[fraction][region])]/scale_factors['spike'][rep][fraction]
 
     #4) calculate simple-estimated rates using the scaled counts
     for rep in reps:
