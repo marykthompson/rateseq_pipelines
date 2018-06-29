@@ -1,0 +1,68 @@
+#Mac-specific environments (to run on MK's macbook)
+python3_environment: root
+R_environment: tigeR2
+deactivate_cmd: /Users/maryk.thompson/miniconda3/bin/deactivate
+rootdir: /Users/maryk.thompson/Desktop/Davislab/comp_labbook_backup/
+
+#Linux environments (to run on mprocessor1):
+#python3_environment: bioinfo5
+#R_environment: tigeR1
+#deactivate_cmd: /usr/people/bioc1402/miniconda3/bin/deactivate
+#rootdir: /usr/people/bioc1402/
+
+seqdir: data/sequencing_data/171123_Splice_SenseSeq_smalltest/
+outdir: data/computational_projects/C2/C2.15.SnakeMakeSetup/debug_180628/
+#choose between min read calculated 'perlib' or 'sum' (sum across foursu and total libs)
+min_read_type: perlib
+min_reads: 100
+labelling_hrs: 0.33
+#deg_during_pulse, just kept as r-compatible string-- CHANGE
+deg_during_pulse: 'FALSE' ##this does not cause errors for any of the replicates
+
+#pd_in_RNA_ratio = the ratio of total RNA used in the PD to the amount used in the input
+#(e.g. for 'SPLICE' experiments, 500 ng was used for input vs. 24 ug for pulldown, therefore PD/IN = 48)
+#in_pd_spike_ratio = the pipetting ratio of input/pd (i.e. ratio of spike-in amount added to tube for input vs. pd)
+#if we multiple the spike ratio by the pd_in_RNA_ratio, then this will make the spike-ins to the scale
+#that they would have been if we'd added at the same scale relative to the input [RNA].
+#This will make the spike-in values a lot higher and therefore the genecounts a lot lower
+pd_in_RNA_ratio: 48
+in_pd_spike_ratio_ERCC: 9
+in_pd_spike_ratio_SIRV: 0.78125
+
+##deg_during_pulse: 'TRUE'
+##error produced for some, but not all of the libraries with deg_during_pulse = TRUE: assignment of an object of class “logical” is not valid for @‘labeledSF’ in an object of class “INSPEcT”; is(value, "numeric") is not TRUE
+#keep set to FALSE for now and then maybe I can test with larger dataset later
+
+### genome and annotation files ###
+# rRNA_txt_table: .csv with FBt #s for rRNAs and the corresponding loci (e.g. 5S_rRNA)
+
+mates: ['R1', 'R2']
+bowtie_mates: ['1', '2']
+align: ['al', 'un']
+rRNA_index: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_rRNA
+salmon_index: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_salmon_index
+scripts_dir: data/computational_projects/rateseq_pipelines/common_scripts/analysis_scripts/
+rRNA_txt_table: genomes/dmel_r6.18_FB/rRNA_txt_table.csv
+intronless_file: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18_intronless.txt
+txt_2_gene_pickle: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/txt_2_gene.p
+annotation_db: data/computational_projects/pipelines/build_annotations_flybase_v1/dmel6_18_introns_included/dmel_6_18.db
+SIRV_molarity_file: /Users/maryk.thompson/Desktop/Davislab/C2.18.spike_in_stability/notebooks/SIRV_spikein_molarities.csv
+
+samples:
+    input1: 58058_CAGCGT_CBKMUANXX_5_20171110B_20171110_small.bam
+    input2: 58059_TGCACG_CBKMUANXX_5_20171110B_20171110_small.bam
+    input3: 58060_ACATTA_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd1: 58061_GTGTAG_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd2: 58062_CTAGTC_CBKMUANXX_5_20171110B_20171110_small.bam
+    pd3: 58063_TGTGCA_CBKMUANXX_5_20171110B_20171110_small.bam
+
+replicates:
+    '1':
+        - input1
+        - pd1
+    '2':
+        - input2
+        - pd2
+    '3':
+        - input3
+        - pd3
