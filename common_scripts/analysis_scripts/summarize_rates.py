@@ -55,7 +55,6 @@ def estimate_rates_simple(df, tL = None, in_pd_spike_ratio_ERCC = None, in_pd_sp
     SIRV_totals = SIRV_df.sum()
     allspike_totals = allspike_df.sum()
 
-
     #1) get hierarchical index-- equiv. to the replicates
     reps = df.columns.levels[0]
 
