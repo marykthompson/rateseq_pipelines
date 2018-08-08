@@ -15,6 +15,7 @@ import pickle
 import copy
 import math
 import HTSeq
+import argparse
 
 import matplotlib
 matplotlib.use('Agg')

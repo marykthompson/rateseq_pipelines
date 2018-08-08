@@ -1,11 +1,18 @@
 #171106 Specialized plotting for specific genomic regions and or meta genomic plots
-import copy
-import numpy as np
-import pandas as pd
+#import copy
+#import numpy as np
+#import pandas as pd
 #import matplotlib as mpl
 #import matplotlib.pyplot as plt
 #from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
-import HTSeq
+#import HTSeq
+
+import sys
+util_dir = '../../common_scripts/pipe_utils/'
+sys.path.append(util_dir)
+from import_file import *
+from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
+
 
 #plt.style.use('presentation')
 def read_sites_from_moods(pos_file):
@@ -231,6 +238,18 @@ def plot_profiles(profile_dict, plot_order = None, xlabel = 'relative position (
     #plt.legend(handles, names, loc = 'upper center', bbox_to_anchor = (0.5, -0.05), fancybox = True, mode = 'expand')
 
     return ax
+
+def get_coverage_vector(samfile):
+    '''
+    Given samfile return an HTSeq genomic array (i.e. coverage vector)
+    '''
+    alignment_file = HTSeq.SAM_Reader(samfile)
+    cvg = HTSeq.GenomicArray( "auto", stranded=True, typecode='i' )
+    for alngt in alignment_file:
+        if alngt.aligned:
+            cvg[ alngt.iv ] += 1
+
+    return cvg
 
 def plot_genomic_region(coverage, chrom, start, end, strand, positions = None):
     '''
